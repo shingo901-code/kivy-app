@@ -13,13 +13,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build APK in kivy/buildozer Docker
+      - name: Build APK (docker)
         run: |
+          docker pull kivy/buildozer:latest
           docker run --rm \
             -v "$PWD":/home/user/app \
             -w /home/user/app \
             kivy/buildozer:latest \
-            bash -lc "yes | sdkmanager --licenses || true; buildozer -v android debug --allow-root"
+            bash -lc "buildozer -v android debug --allow-root"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
