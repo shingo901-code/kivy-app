@@ -1,46 +1,37 @@
 [app]
-# アプリ名（表示名）
-title = SimpleCounter
+title = KivyApp
+package.name = kivyapp
+package.domain = org.example
 
-# パッケージ名（英小文字推奨・スペース不可）
-package.name = simplecounter
-
-# ドメイン（逆ドメイン形式）
-package.domain = org.sir.simplecounter
-
-# ソースの場所（リポジトリ直下なら .）
-source.dir = .
-
-# 取り込む拡張子
-source.include_exts = py,kv,png,jpg,jpeg,ttf,otf
-
-# ★最重要：起動ファイル
-entrypoint = main.py
-
-# ★最重要：バージョン（ないとエラーになる）
+# ★これが無いと以前の「version / version.regex が必要」エラーになる
 version = 0.1
 
-# 必要ライブラリ（まずは最小）
+# リポジトリ直下に main.py がある前提
+source.dir = .
+source.include_exts = py,kv,png,jpg,jpeg,gif,atlas,ttf,otf,txt,json,wav,mp3,ogg
+
+# 入口ファイル
+source.main = main.py
+
+# Kivyアプリの基本（必要に応じて追加）
 requirements = python3,kivy
 
-# 画面向き
+# 画面向き（必要なら landscape に）
 orientation = portrait
 
-# 全画面（不要なら 0）
-fullscreen = 1
-
-# 権限（ネット不要なら消してOK）
-android.permissions = INTERNET
-
-# Android API（まずはこのままでOK）
+# Android設定（安定寄り）
 android.api = 33
 android.minapi = 21
+android.ndk = 25b
 
-# アーキテクチャ（まずは armeabi-v7a と arm64-v8a）
-android.archs = armeabi-v7a,arm64-v8a
+# ★GitHub Actionsで止まりがちなSDKライセンスを自動同意
+android.accept_sdk_license = True
 
-# ログやデバッグ（困ったら true にしてログ増やす）
+# 出力形式
+android.archs = arm64-v8a, armeabi-v7a
+
+# 権限（必要なものだけ残す）
+android.permissions = INTERNET
+
+# buildozer のログ量
 log_level = 2
-
-[buildozer]
-# （空でOK）
