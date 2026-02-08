@@ -8,15 +8,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@master
+      # 任意：ビルドキャッシュ（次回以降速くなる）
+      - name: Cache buildozer
+        uses: actions/cache@v4
         with:
-          workdir: .
-          command: buildozer -v android debug
+          path: .buildozer
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+
+      - name: Build APK (docker)
+        run: |
+          mkdir -p .buildozer
+          docker pull kivy/buildozer:latest
+          docker run --rm \
+            -v "$PWD":/home/user/hostcwd \
+            -v "$PWD/.buildozer":/home/user/.buildozer \
+            kivy/buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
