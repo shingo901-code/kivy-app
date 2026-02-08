@@ -1,16 +1,12 @@
 FROM kivy/buildozer:latest
 
-# 既存のGID=1000グループを使う（なければ作る）
-ARG USERNAME=builder
-ARG USER_UID=1000
-ARG USER_GID=1000
+# 既に入っているユーザー/グループを使う（kivy/buildozer は通常 user がいる）
+USER root
 
-RUN if ! getent group ${USER_GID}; then groupadd -g ${USER_GID} ${USERNAME}; fi \
- && useradd -u ${USER_UID} -g ${USER_GID} -m ${USERNAME} \
- && mkdir -p /home/${USERNAME}/app \
- && chown -R ${USERNAME}:${USER_GID} /home/${USERNAME}
+RUN mkdir -p /home/user/app \
+ && chown -R user:user /home/user
 
-WORKDIR /home/${USERNAME}/app
-ENV HOME=/home/${USERNAME}
+WORKDIR /home/user/app
+ENV HOME=/home/user
 
-USER ${USERNAME}
+USER user
