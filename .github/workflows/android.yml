@@ -1,8 +1,8 @@
-name: Build Kivy APK
+name: Build Android APK (Kivy + Buildozer)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -13,19 +13,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build APK in kivy/buildozer Docker (no chown)
+      - name: Build APK with Buildozer (Docker, non-root, no chown)
         run: |
           set -eux
-          UID_GID="$(id -u):$(id -g)"
-          echo "UID:GID = ${UID_GID}"
+
+          echo "UID: $(id -u)"
+          echo "GID: $(id -g)"
 
           docker pull kivy/buildozer:latest
 
           docker run --rm \
-            --user "${UID_GID}" \
+            --user "$(id -u):$(id -g)" \
             -e HOME=/tmp \
-            -e BUILDOZER_NO_CHOWN=1 \
             -v "${GITHUB_WORKSPACE}:/app" \
             -w /app \
             kivy/buildozer:latest \
-            bash -lc "buildozer -v android debug"
+            bash -lc "buildozer -v android debug --no-chown"
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: bin/*.apk
