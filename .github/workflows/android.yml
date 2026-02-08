@@ -12,11 +12,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build APK (docker)
-        uses: ArtemSBulgakov/buildozer-action@master
-        with:
-          workdir: .
-          command: |
+      - name: Build APK in kivy/buildozer docker
+        run: |
+          docker pull kivy/buildozer:latest
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE":/home/builder/app \
+            -w /home/builder/app \
+            kivy/buildozer:latest \
             bash -lc "yes | sdkmanager --licenses || true; buildozer -v android debug"
 
       - name: Upload APK
