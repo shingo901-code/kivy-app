@@ -1,4 +1,19 @@
-- name: Build APK in kivy/buildozer Docker (no chown)
+name: Build Kivy APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build APK in kivy/buildozer Docker (no chown)
         run: |
           set -eux
           UID_GID="$(id -u):$(id -g)"
