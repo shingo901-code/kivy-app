@@ -13,17 +13,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build APK (docker)
+      # DockerイメージをリポジトリのDockerfileから作る
+      - name: Build Docker image
         run: |
-          docker pull kivy/buildozer:latest
+          docker build -t kivy-buildozer-nonroot .
+
+      # 重要：非rootユーザーで実行し、ライセンス承諾もここでやる
+      - name: Build APK (non-root, no prompt)
+        run: |
           docker run --rm \
-            -v "$PWD":/home/user/app \
-            -w /home/user/app \
-            kivy/buildozer:latest \
-            bash -lc "buildozer -v android debug --allow-root"
+            -v "${{ github.workspace }}:/home/builder/app" \
+            -w /home/builder/app \
+            -e HOME=/home/builder \
+            -e ANDROID_SDK_ROOT=/opt/android-sdk \
+            -e ANDROID_HOME=/opt/android-sdk \
+            kivy-buildozer-nonroot bash -lc '
+              set -e
+
+              echo "== sanity check =="
+              ls -la
+              test -f buildozer.spec
+              test -f main.py
+
+              echo "== accept android licenses (non-interactive) =="
+              # sdkmanagerの場所は環境差があるので、候補を順番に試す
+              if [ -n "$ANDROID_SDK_ROOT" ] && [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+                yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+              elif [ -x "/opt/android/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
+                yes | "/opt/android/android-sdk/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+              elif command -v sdkmanager >/dev/null 2>&1; then
+                yes | sdkmanager --licenses >/dev/null || true
+              else
+                echo "sdkmanager not found; continuing (buildozer may still succeed)."
+              fi
+
+              echo "== buildozer android debug =="
+              buildozer -v android debug
+            '
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: bin/*.apk
+          path: |
+            bin/*.apk
