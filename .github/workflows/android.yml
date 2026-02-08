@@ -1,26 +1,4 @@
-name: Android Build (Kivy)
-
-on:
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Show workspace files (debug)
-        run: |
-          pwd
-          ls -la
-          test -f main.py && echo "OK: main.py exists" || (echo "NG: main.py not found" && exit 1)
-          test -f buildozer.spec && echo "OK: buildozer.spec exists" || (echo "NG: buildozer.spec not found" && exit 1)
-
-      - name: Build APK in kivy/buildozer Docker (non-root, no prompt)
+- name: Build APK in kivy/buildozer Docker (no chown)
         run: |
           set -eux
           UID_GID="$(id -u):$(id -g)"
@@ -31,18 +9,8 @@ jobs:
           docker run --rm \
             --user "${UID_GID}" \
             -e HOME=/tmp \
+            -e BUILDOZER_NO_CHOWN=1 \
             -v "${GITHUB_WORKSPACE}:/app" \
             -w /app \
             kivy/buildozer:latest \
-            bash -lc "python --version && buildozer -v android debug"
-
-      - name: List bin/ outputs (debug)
-        run: |
-          ls -la
-          ls -la bin || true
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk
-          path: bin/*.apk
+            bash -lc "buildozer -v android debug"
